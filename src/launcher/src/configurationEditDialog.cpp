@@ -190,6 +190,13 @@ ConfigurationEditDialog::ConfigurationEditDialog(Configuration& info, QWidget* p
 	connect(m_ui->slider_controller_volume, &QSlider::valueChanged, this, [this](int value) {
 		m_ui->label_controller_volume_value->setText(tr("%1%").arg(value));
 	});
+	connect(m_ui->slider_controller_steam_gain, &QSlider::valueChanged, this, [this](int value) {
+		m_ui->label_controller_steam_gain_value->setText(tr("%1%").arg(value));
+	});
+	connect(m_ui->checkBox_controller_steam, &QCheckBox::toggled, this, [this](bool checked) {
+		m_ui->slider_controller_steam_gain->setEnabled(checked);
+		m_ui->checkBox_controller_steam_touchpad->setEnabled(checked);
+	});
 	connect(m_ui->comboBox_shader_log_direction, &QComboBox::currentTextChanged, this,
 	        [this](const QString& text) {
 		        auto log = TextToEnum<Configuration::LogDirection>(text);
@@ -256,6 +263,11 @@ void ConfigurationEditDialog::Init(const Configuration& info) {
 	m_ui->slider_audio_objects->setEnabled(info.audio_mix.objects_enabled);
 	m_ui->label_audio_objects_value->setEnabled(info.audio_mix.objects_enabled);
 	m_ui->checkBox_gpu_occlusion->setChecked(info.gpu_occlusion_accurate);
+	m_ui->checkBox_controller_steam->setChecked(info.controller.steam_controller);
+	m_ui->slider_controller_steam_gain->setValue(info.controller.steam_haptics_gain);
+	m_ui->checkBox_controller_steam_touchpad->setChecked(info.controller.steam_left_touchpad);
+	m_ui->slider_controller_steam_gain->setEnabled(info.controller.steam_controller);
+	m_ui->checkBox_controller_steam_touchpad->setEnabled(info.controller.steam_controller);
 	auto* microphone = m_ui->comboBox_audio_input_device;
 	microphone->clear();
 	microphone->addItem(tr("None"), QString {});
@@ -477,6 +489,9 @@ static void UpdateInfo(Configuration& info, Ui::ConfigurationEditDialog& ui, boo
 		}
 		info.audio_mix.objects_enabled = ui.checkBox_audio_objects->isChecked();
 		info.gpu_occlusion_accurate = ui.checkBox_gpu_occlusion->isChecked();
+		info.controller.steam_controller    = ui.checkBox_controller_steam->isChecked();
+		info.controller.steam_haptics_gain  = ui.slider_controller_steam_gain->value();
+		info.controller.steam_left_touchpad = ui.checkBox_controller_steam_touchpad->isChecked();
 	}
 	info.screen_resolution =
 	    TextToEnum<Configuration::Resolution>(ui.comboBox_screen_resolution->currentText());
