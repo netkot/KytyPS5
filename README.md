@@ -1,3 +1,48 @@
+# KytyPS5 with Steam Controller support
+
+This fork adds support for the original Steam Controller (2015) to
+[Jetsku/KytyPS5](https://github.com/Jetsku/KytyPS5). The controller works as a DualSense: DualSense haptics
+play on its trackpad actuators, and its left trackpad works as the DualSense touchpad. The default branch,
+`steam-controller-int17`, is Jetsku's `u59-windows-20261007-int17-pre` pre-release plus these changes.
+The rest of this README after this section is Jetsku's.
+
+## Steam Controller
+
+- **Haptics.** Games such as Astro's Playroom and Astro Bot drive DualSense haptics with an audio stream and never
+  call `scePadSetVibration`. The emulator measures the loudness and main frequency of each channel every 10 ms.
+  It sends them to a Steam Controller as a haptic effect played on the left and right trackpads. Other controllers
+  that are not a DualSense get plain rumble.
+- **Touchpad.** Touching the left trackpad moves a finger on the DualSense touchpad. Clicking it is still the D-pad,
+  and Back is the touchpad click.
+- **Launcher settings.** Settings -> Controller has a "Steam Controller" group. It has a checkbox to use the controller
+  as a DualSense, a haptics strength slider (0-1000%) and a checkbox for the left trackpad as touchpad. When the mode
+  is on and Steam is running, starting a game offers to close Steam, start anyway or cancel. Steam holds the
+  controller, so it has to be closed.
+
+Tested with the controller connected through the Valve wireless dongle.
+
+The launcher passes these settings to the emulator as environment variables. Without the launcher, set them by hand:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SDL_JOYSTICK_HIDAPI_STEAM` | | `1` enables the Steam Controller driver (close Steam first) |
+| `SDL_JOYSTICK_HIDAPI_STEAM_RUMBLE_GAIN` | `100` | haptics strength in percent, 0-1000 |
+| `SDL_JOYSTICK_HIDAPI_STEAM_LEFTPAD_TOUCHPAD` | `1` | `0` turns the touchpad off |
+| `SDL_JOYSTICK_HIDAPI_STEAM_RUMBLE_LOG` | | path of a file that receives a haptics log once per second |
+
+### Changed files
+
+- `src/libs/dualSenseHaptics.cpp`: haptics analysis and output to non-DualSense controllers.
+- `3rdparty/patches/sdl3-steam-controller.patch`: changes to SDL 3.4.16's Steam Controller driver
+  (`SDL_hidapi_steam.c`) and gamepad mapping (`SDL_gamepad.c`). `3rdparty/CMakeLists.txt` applies it to the
+  `3rdparty/SDL3` submodule during configure. An SDL tree that already has the patch is left alone, and a patch
+  that does not apply stops the configure. After the patch is applied, `git status` shows the submodule as
+  modified.
+- `src/launcher`: the Steam Controller settings (global, stored as `controller_steam_*` in `Kyty.ini`) and the
+  Steam check.
+
+The build is the same as Jetsku's, see [the build guide](docs/EXPERIMENTAL.md).
+
 # KytyPS5 experimental
 
 The main branch contains the U59 renderer, the validated Demon's Souls shader and
