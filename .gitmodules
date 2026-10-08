@@ -2,6 +2,8 @@
 	path = 3rdparty/SDL3
 	url = https://github.com/libsdl-org/SDL.git
 	branch = release-3.4.x
+	# The build applies 3rdparty/patches/sdl3-steam-controller.patch to this tree; that is not a local change.
+	ignore = dirty
 [submodule "3rdparty/magic_enum"]
 	path = 3rdparty/magic_enum
 	url = https://github.com/Neargye/magic_enum.git
