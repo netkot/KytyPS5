@@ -3,7 +3,7 @@
 This fork adds support for the original Steam Controller (2015) to
 [Jetsku/KytyPS5](https://github.com/Jetsku/KytyPS5). The controller works as a DualSense: DualSense haptics
 play on its trackpad actuators, and its left trackpad works as the DualSense touchpad. The default branch,
-`steam-controller-int17`, is Jetsku's `u59-windows-20261007-int17-pre` pre-release plus these changes.
+`steam-controller-int18`, is Jetsku's `u59-windows-20261009-int18-pre` pre-release plus these changes.
 The rest of this README after this section is Jetsku's.
 
 ## Steam Controller
