@@ -5,7 +5,7 @@
 This fork adds support for the original Steam Controller (2015) to
 [Jetsku/KytyPS5](https://github.com/Jetsku/KytyPS5). The controller works as a DualSense: DualSense haptics
 play on its trackpad actuators, and its left trackpad works as the DualSense touchpad. The default branch,
-`steam-controller-int19.1`, is Jetsku's `u59-windows-20261013-int19.1` release plus these changes.
+`steam-controller-int19.4`, is Jetsku's `u59-windows-20261017-int19.4` release plus these changes.
 The rest of this README after this section is Jetsku's.
 
 ## Steam Controller
@@ -16,7 +16,7 @@ The rest of this README after this section is Jetsku's.
   that are not a DualSense get plain rumble.
 - **Touchpad.** Touching the left trackpad moves a finger on the DualSense touchpad. Clicking it is still the D-pad,
   and Back is the touchpad click.
-- **Launcher settings.** Settings -> Controller has a "Steam Controller" group. It has a checkbox to use the controller
+- **Launcher settings.** Settings -> General -> Controller has a "Steam Controller" group. It has a checkbox to use the controller
   as a DualSense, a haptics strength slider (0-1000%) and a checkbox for the left trackpad as touchpad. When the mode
   is on and Steam is running, starting a game offers to close Steam, start anyway or cancel. Steam holds the
   controller, so it has to be closed.
