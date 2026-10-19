@@ -16,6 +16,9 @@ The rest of this README after this section is Jetsku's.
   that are not a DualSense get plain rumble.
 - **Touchpad.** Touching the left trackpad moves a finger on the DualSense touchpad. Clicking it is still the D-pad,
   and Back is the touchpad click.
+- **Triggers.** The trigger's final click is the full pull. Without the click the analog travel stops at 90%, and
+  the click gives 100%, so games that wait for a fully pressed trigger (such as the gacha machine in Astro Bot)
+  react to it.
 - **Launcher settings.** Settings -> General -> Controller has a "Steam Controller" group. It has a checkbox to use the controller
   as a DualSense, a haptics strength slider (0-1000%) and a checkbox for the left trackpad as touchpad. When the mode
   is on and Steam is running, starting a game offers to close Steam, start anyway or cancel. Steam holds the

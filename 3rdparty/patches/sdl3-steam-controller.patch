@@ -12,7 +12,7 @@ index dd5b416..3f116e7 100644
              // The Steam Deck's built-in controller has QAM, 4 back buttons, L/R trackpads, and L/R capacitive touch sticks
              SDL_strlcat(mapping_string, "misc1:b11,paddle1:b12,paddle2:b13,paddle3:b14,paddle4:b15,touchpad:b17,misc2:b16,misc3:b19,misc4:b18", sizeof(mapping_string));
 diff --git a/src/joystick/hidapi/SDL_hidapi_steam.c b/src/joystick/hidapi/SDL_hidapi_steam.c
-index cb6add7..cc8988c 100644
+index cb6add7..30b9f73 100644
 --- a/src/joystick/hidapi/SDL_hidapi_steam.c
 +++ b/src/joystick/hidapi/SDL_hidapi_steam.c
 @@ -54,6 +54,7 @@ enum
@@ -403,7 +403,26 @@ index cb6add7..cc8988c 100644
      if (size == 65) {
          if (SetFeatureReport(device, data, size) < 0) {
              return SDL_SetError("Couldn't write feature report");
-@@ -1431,6 +1745,8 @@ static bool HIDAPI_DriverSteam_UpdateDevice(SDL_HIDAPI_Device *device)
+@@ -1361,6 +1675,18 @@ static void ControllerDisconnected(SDL_HIDAPI_Device *device, SDL_Joystick **joy
+     *joystick = NULL;
+ }
+ 
++// The trigger's final click is the full pull: without it the analog travel stops short of full,
++// so a game sees the trigger fully pressed only after the click.
++#define STEAM_TRIGGER_UNCLICKED_MAX (SDL_MAX_SINT16 * 9 / 10)
++
++static int SteamTriggerAxis(unsigned short analog, bool clicked)
++{
++    const int value = clicked ? SDL_MAX_SINT16 : (int)analog * STEAM_TRIGGER_UNCLICKED_MAX / SDL_MAX_SINT16;
++    // Scale onto the whole axis range: value * 2 - 32768 tops out at 32766, which the trigger mapping
++    // and the emulator turn into 254, and games waiting for 255 never see the trigger fully pressed.
++    return value * (SDL_JOYSTICK_AXIS_MAX - SDL_JOYSTICK_AXIS_MIN) / SDL_MAX_SINT16 + SDL_JOYSTICK_AXIS_MIN;
++}
++
+ static bool HIDAPI_DriverSteam_UpdateDevice(SDL_HIDAPI_Device *device)
+ {
+     SDL_DriverSteam_Context *ctx = (SDL_DriverSteam_Context *)device->context;
+@@ -1431,6 +1757,8 @@ static bool HIDAPI_DriverSteam_UpdateDevice(SDL_HIDAPI_Device *device)
  
                  SDL_SendJoystickButton(timestamp, joystick, SDL_GAMEPAD_BUTTON_BACK,
                                            ((ctx->m_state.ulButtons & STEAM_BUTTON_MENU_MASK) != 0));
@@ -412,10 +431,12 @@ index cb6add7..cc8988c 100644
  
                  SDL_SendJoystickButton(timestamp, joystick, SDL_GAMEPAD_BUTTON_START,
                                            ((ctx->m_state.ulButtons & STEAM_BUTTON_ESCAPE_MASK) != 0));
-@@ -1463,6 +1779,27 @@ static bool HIDAPI_DriverSteam_UpdateDevice(SDL_HIDAPI_Device *device)
+@@ -1463,8 +1791,29 @@ static bool HIDAPI_DriverSteam_UpdateDevice(SDL_HIDAPI_Device *device)
                  SDL_SendJoystickHat(timestamp, joystick, 0, hat);
              }
  
+-            SDL_SendJoystickAxis(timestamp, joystick, SDL_GAMEPAD_AXIS_LEFT_TRIGGER, (int)ctx->m_state.sTriggerL * 2 - 32768);
+-            SDL_SendJoystickAxis(timestamp, joystick, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER, (int)ctx->m_state.sTriggerR * 2 - 32768);
 +            if (ctx->leftpad_touchpad) {
 +                const bool finger = (ctx->m_state.ulButtons & STEAM_LEFTPAD_FINGERDOWN_MASK) != 0;
 +                bool down;
@@ -437,10 +458,12 @@ index cb6add7..cc8988c 100644
 +                }
 +            }
 +
-             SDL_SendJoystickAxis(timestamp, joystick, SDL_GAMEPAD_AXIS_LEFT_TRIGGER, (int)ctx->m_state.sTriggerL * 2 - 32768);
-             SDL_SendJoystickAxis(timestamp, joystick, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER, (int)ctx->m_state.sTriggerR * 2 - 32768);
++            SDL_SendJoystickAxis(timestamp, joystick, SDL_GAMEPAD_AXIS_LEFT_TRIGGER, SteamTriggerAxis(ctx->m_state.sTriggerL, (ctx->m_state.ulButtons & STEAM_LEFT_TRIGGER_MASK) != 0));
++            SDL_SendJoystickAxis(timestamp, joystick, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER, SteamTriggerAxis(ctx->m_state.sTriggerR, (ctx->m_state.ulButtons & STEAM_RIGHT_TRIGGER_MASK) != 0));
  
-@@ -1504,6 +1841,8 @@ static void HIDAPI_DriverSteam_CloseJoystick(SDL_HIDAPI_Device *device, SDL_Joys
+             SDL_SendJoystickAxis(timestamp, joystick, SDL_GAMEPAD_AXIS_LEFTX, ctx->m_state.sLeftStickX);
+             SDL_SendJoystickAxis(timestamp, joystick, SDL_GAMEPAD_AXIS_LEFTY, ~ctx->m_state.sLeftStickY);
+@@ -1504,6 +1853,8 @@ static void HIDAPI_DriverSteam_CloseJoystick(SDL_HIDAPI_Device *device, SDL_Joys
      SDL_RemoveHintCallback(SDL_HINT_JOYSTICK_HIDAPI_STEAM_HOME_LED,
                             SDL_HomeLEDHintChanged, ctx);
  
